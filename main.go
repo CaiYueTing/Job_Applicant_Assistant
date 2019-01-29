@@ -17,15 +17,15 @@ func init() {
 }
 
 type Record struct {
-	id          int
-	location    string
-	publicdate  string
-	company     string
-	dealdate    string
-	govnumber   string
-	law         string
-	description string
-	ps          string
+	ID          int    `json:"id"`
+	Location    string `json:"location"`
+	Publicdate  string `json:"publicdate"`
+	Company     string `json:"company"`
+	Dealdate    string `json:"dealdate"`
+	Govnumber   string `json:"govnumber"`
+	Law         string `json:"law"`
+	Description string `json:"description"`
+	Ps          string `json:"ps"`
 }
 
 func homepage(c *gin.Context) {
@@ -35,37 +35,32 @@ func homepage(c *gin.Context) {
 	})
 }
 
-func lawcount(c *gin.Context) {
-	count := c.Param("company")
-	c.JSON(200, gin.H{
-		"message": len(count),
-	})
-}
-
 func query(c *gin.Context) {
+	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	company := c.Param("company")
 	str := `SELECT * FROM 104data.illegal_record where company like '%` + company + `%'`
 	fmt.Println(str)
 	row, err := db.Query(str)
 	defer row.Close()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	records := []Record{}
 
 	for row.Next() {
 		var record Record
-		row.Scan(&record.id, &record.location, &record.publicdate, &record.company, &record.dealdate, &record.govnumber, &record.law, &record.description, &record.ps)
+		row.Scan(&record.ID, &record.Location, &record.Publicdate, &record.Company, &record.Dealdate, &record.Govnumber, &record.Law, &record.Description, &record.Ps)
 		records = append(records, record)
 	}
-	fmt.Println(records)
 	if err = row.Err(); err != nil {
 		log.Fatalln(err)
 	}
-	c.JSON(200, gin.H{
+
+	c.SecureJSON(200, gin.H{
 		"records": records,
 	})
+
 }
 
 func main() {
@@ -74,8 +69,9 @@ func main() {
 		log.Fatalln(err)
 	}
 	r := gin.Default()
+	// r.Use(Cors())
 	r.GET("/welfare/:name", homepage)
-	r.GET("/law/:company", lawcount)
+	r.GET("/law/:company", query)
 	r.GET("/query/:company", query)
 	r.Run()
 }
