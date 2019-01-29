@@ -63,15 +63,67 @@ func query(c *gin.Context) {
 
 }
 
+type welfarepoint struct {
+	Company          string `json:"company"`
+	Three            bool   `json:"three"`
+	Yearend          bool   `json:"yearend"`
+	Bitrh            bool   `json:"bitrh"`
+	Marry            bool   `json:"marry"`
+	Maternity        bool   `json:"maternity"`
+	Patent           bool   `json:"patent"`
+	Longterm         bool   `json:"longterm"`
+	Insurance        bool   `json:"insurance"`
+	Stock            bool   `json:"stock"`
+	Annual           bool   `json:"annual"`
+	Attendance       bool   `json:"attendance"`
+	Performance      bool   `json:"performance"`
+	Travel           bool   `json:"travel"`
+	Consolation      bool   `json:"consolation"`
+	Health           bool   `json:"health"`
+	Flexible         bool   `json:"flexible"`
+	Paternityleave   bool   `json:"paternityleave"`
+	Travelleave      bool   `json:"travelleave"`
+	Physiologyleave  bool   `json:"Physiologyleave"`
+	Fullpaysickleave bool   `json:"fullpaysickleave"`
+	Dorm             bool   `json:"dorm"`
+	Restaurant       bool   `json:"restaurant"`
+	Childcare        bool   `json:"childcare"`
+	Transport        bool   `json:"transport"`
+	Servemeals       bool   `json:"servemeals"`
+	Snack            bool   `json:"snack"`
+	Afternoon        bool   `json:"afternoon"`
+	Gym              bool   `json:"gym"`
+	Education        bool   `json:"education"`
+	Tail             bool   `json:"tail"`
+	Employeetravel   bool   `json:"employeetravel"`
+	Society          bool   `json:"society"`
+	Overtime         bool   `json:"overtime"`
+	Shift            bool   `json:"shift"`
+	Permanent        bool   `json:"permanent"`
+}
+
 func main() {
 
 	if err := db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	r := gin.Default()
-	// r.Use(Cors())
-	r.GET("/welfare/:name", homepage)
-	r.GET("/law/:company", query)
-	r.GET("/query/:company", query)
-	r.Run()
+	querypoint()
+	// r := gin.Default()
+	// // r.Use(Cors())
+	// r.GET("/welfare/:name", homepage)
+	// r.GET("/law/:company", query)
+	// r.GET("/query/:company", query)
+	// r.Run()
+}
+
+func querypoint() {
+	str := `SELECT * FROM 104data.welfare`
+	rows, err := db.Query(str)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		fmt.Println(rows.Scan())
+	}
 }
