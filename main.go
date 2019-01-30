@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
@@ -28,42 +29,7 @@ type Record struct {
 	Ps          string `json:"ps"`
 }
 
-func homepage(c *gin.Context) {
-	name := c.Param("name")
-	c.JSON(200, gin.H{
-		"message": "hello" + name,
-	})
-}
-
-func query(c *gin.Context) {
-	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	company := c.Param("company")
-	str := `SELECT * FROM 104data.illegal_record where company like '%` + company + `%'`
-	fmt.Println(str)
-	row, err := db.Query(str)
-	defer row.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	records := []Record{}
-
-	for row.Next() {
-		var record Record
-		row.Scan(&record.ID, &record.Location, &record.Publicdate, &record.Company, &record.Dealdate, &record.Govnumber, &record.Law, &record.Description, &record.Ps)
-		records = append(records, record)
-	}
-	if err = row.Err(); err != nil {
-		log.Fatalln(err)
-	}
-
-	c.SecureJSON(200, gin.H{
-		"records": records,
-	})
-
-}
-
-type welfarepoint struct {
+type Welfarepoint struct {
 	Company          string `json:"company"`
 	Three            bool   `json:"three"`
 	Yearend          bool   `json:"yearend"`
@@ -102,6 +68,44 @@ type welfarepoint struct {
 	Permanent        bool   `json:"permanent"`
 }
 
+type Pr []int
+
+func homepage(c *gin.Context) {
+	name := c.Param("name")
+	c.JSON(200, gin.H{
+		"message": "hello" + name,
+	})
+}
+
+func query(c *gin.Context) {
+	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	company := c.Param("company")
+	str := `SELECT * FROM 104data.illegal_record where company like '%` + company + `%'`
+	fmt.Println(str)
+	row, err := db.Query(str)
+	defer row.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	records := []Record{}
+
+	for row.Next() {
+		var record Record
+		row.Scan(&record.ID, &record.Location, &record.Publicdate, &record.Company, &record.Dealdate, &record.Govnumber, &record.Law, &record.Description, &record.Ps)
+		records = append(records, record)
+	}
+	if err = row.Err(); err != nil {
+		log.Fatalln(err)
+	}
+	fmt.Println("")
+	fmt.Println(records)
+	c.SecureJSON(200, gin.H{
+		"records": records,
+	})
+
+}
+
 func main() {
 
 	if err := db.Ping(); err != nil {
@@ -109,7 +113,6 @@ func main() {
 	}
 	querypoint()
 	// r := gin.Default()
-	// // r.Use(Cors())
 	// r.GET("/welfare/:name", homepage)
 	// r.GET("/law/:company", query)
 	// r.GET("/query/:company", query)
@@ -117,13 +120,63 @@ func main() {
 }
 
 func querypoint() {
+	start := time.Now()
 	str := `SELECT * FROM 104data.welfare`
 	rows, err := db.Query(str)
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	welfarepoint := []Welfarepoint{}
 	defer rows.Close()
 	for rows.Next() {
-		fmt.Println(rows.Scan())
+		var w Welfarepoint
+		rows.Scan(
+			&w.Company,
+			&w.Three, &w.Yearend, &w.Bitrh, &w.Marry, &w.Maternity,
+			&w.Patent, &w.Longterm, &w.Insurance, &w.Stock, &w.Annual,
+			&w.Attendance, &w.Performance, &w.Travel, &w.Consolation, &w.Health,
+			&w.Flexible, &w.Paternityleave, &w.Travelleave, &w.Physiologyleave, &w.Fullpaysickleave,
+			&w.Dorm, &w.Restaurant, &w.Childcare, &w.Transport, &w.Servemeals,
+			&w.Snack, &w.Afternoon, &w.Gym, &w.Education, &w.Tail,
+			&w.Employeetravel, &w.Society, &w.Overtime, &w.Shift, &w.Permanent,
+		)
+
+		welfarepoint = append(welfarepoint, w)
 	}
+	point := []int{}
+	for _, el := range welfarepoint {
+		p := el.wtoi()
+		point = append(point, p)
+	}
+	m := 0
+
+	for _, el := range point {
+		if el > m {
+			m = el
+		}
+	}
+	fmt.Println(m)
+
+	end := time.Now()
+	fmt.Println("end time: ", end.Sub(start).Seconds())
+}
+
+func (w Welfarepoint) wtoi() int {
+	result :=
+		btou(w.Three) + btou(w.Yearend) + btou(w.Bitrh) + btou(w.Marry) + btou(w.Maternity) +
+			btou(w.Patent) + btou(w.Longterm) + btou(w.Insurance) + btou(w.Stock) + btou(w.Annual) +
+			btou(w.Attendance) + btou(w.Performance) + btou(w.Travel) + btou(w.Consolation) + btou(w.Health) +
+			btou(w.Flexible) + btou(w.Paternityleave) + btou(w.Travelleave) + btou(w.Physiologyleave) + btou(w.Fullpaysickleave) +
+			btou(w.Dorm) + btou(w.Restaurant) + btou(w.Childcare) + btou(w.Transport) + btou(w.Servemeals) +
+			btou(w.Snack) + btou(w.Afternoon) + btou(w.Gym) + btou(w.Education) + btou(w.Tail) +
+			btou(w.Employeetravel) + btou(w.Society) + btou(w.Overtime) + btou(w.Shift) + btou(w.Permanent)
+	return result
+}
+
+func btou(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
