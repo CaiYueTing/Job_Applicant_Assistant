@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -67,8 +68,6 @@ type Welfarepoint struct {
 	Shift            bool   `json:"shift"`
 	Permanent        bool   `json:"permanent"`
 }
-
-type Pr []int
 
 func homepage(c *gin.Context) {
 	name := c.Param("name")
@@ -145,18 +144,29 @@ func querypoint() {
 		welfarepoint = append(welfarepoint, w)
 	}
 	point := []int{}
+	a := []int{}
+	c := []string{}
 	for _, el := range welfarepoint {
 		p := el.wtoi()
-		point = append(point, p)
-	}
-	m := 0
-
-	for _, el := range point {
-		if el > m {
-			m = el
+		if p == 0 {
+			c = append(c, el.Company)
 		}
+		if p > 0 {
+			point = append(point, p)
+		}
+		if p > 15 {
+			a = append(a, p)
+		}
+
 	}
-	fmt.Println(m)
+	fmt.Println(c)
+	sort.Ints(point)
+	fmt.Println(len(a))
+	dividindex := len(point) / 10
+	fmt.Println("slice index", dividindex)
+	fmt.Println(point[dividindex], point[dividindex*2], point[dividindex*3], point[dividindex*4], point[dividindex*5],
+		point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
+	)
 
 	end := time.Now()
 	fmt.Println("end time: ", end.Sub(start).Seconds())
