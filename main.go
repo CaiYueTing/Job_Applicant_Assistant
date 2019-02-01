@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"sort"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -127,7 +126,7 @@ func querypoint() {
 	}
 
 	welfarepoint := []Welfarepoint{}
-	defer rows.Close()
+
 	for rows.Next() {
 		var w Welfarepoint
 		rows.Scan(
@@ -143,30 +142,44 @@ func querypoint() {
 
 		welfarepoint = append(welfarepoint, w)
 	}
-	point := []int{}
-	a := []int{}
-	c := []string{}
-	for _, el := range welfarepoint {
-		p := el.wtoi()
-		if p == 0 {
-			c = append(c, el.Company)
-		}
-		if p > 0 {
-			point = append(point, p)
-		}
-		if p > 15 {
-			a = append(a, p)
-		}
 
+	rows.Close()
+
+	// point := []int{}
+	// a := []int{}
+	vals := []interface{}{}
+	sqlStr := `insert into welfarepoint(Custno, point) VALUES`
+	for i, el := range welfarepoint {
+		p := el.wtoi()
+		vals = append(vals, el.Company, p)
+		sqlStr += `(?,?),`
+		if i%5000 == 0 || i == len(welfarepoint)-1 {
+			sqlstart := time.Now()
+			sqlStr = sqlStr[0 : len(sqlStr)-1]
+			sqlStr = sqlStr + `ON DUPLICATE KEY UPDATE point = values(point)`  
+			stmt, err := db.Prepare(sqlStr)
+			if err != nil {
+				fmt.Println("prepare error ", err)
+			}
+			_, err = stmt.Exec(vals...)
+			if err != nil {
+				fmt.Println("exec error", err)
+			}
+			stmt.Close()
+			sqlend := time.Now()
+			fmt.Println(i,"complete", sqlend.Sub(sqlstart).Seconds())
+			sqlStr = `insert into welfarepoint(Custno, point) VALUES`
+			vals = []interface{}{}
+		}
 	}
-	fmt.Println(c)
-	sort.Ints(point)
-	fmt.Println(len(a))
-	dividindex := len(point) / 10
-	fmt.Println("slice index", dividindex)
-	fmt.Println(point[dividindex], point[dividindex*2], point[dividindex*3], point[dividindex*4], point[dividindex*5],
-		point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
-	)
+	// fmt.Println(c)
+	// sort.Ints(point)
+	// fmt.Println(len(a))
+	// dividindex := len(point) / 10
+	// fmt.Println("slice index", dividindex)
+	// fmt.Println(point[dividindex], point[dividindex*2], point[dividindex*3], point[dividindex*4], point[dividindex*5],
+	// 	point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
+	// )
 
 	end := time.Now()
 	fmt.Println("end time: ", end.Sub(start).Seconds())
