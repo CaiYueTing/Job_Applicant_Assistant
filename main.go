@@ -212,7 +212,7 @@ func main() {
 	if err := db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	// querypoint()
+	// dividpoint := querypoint()
 	r := gin.Default()
 	r.GET("/welfare/:welfare", makescore)
 	r.GET("/law/:company", query)
@@ -220,7 +220,7 @@ func main() {
 	r.Run()
 }
 
-func querypoint() {
+func querypoint() []int {
 	start := time.Now()
 	str := `SELECT * FROM 104data.welfare`
 	rows, err := db.Query(str)
@@ -280,7 +280,10 @@ func querypoint() {
 	// a := []int{}
 	for _, el := range welfarepoint {
 		w := el.wtoi()
-		point = append(point, w)
+		if w > 0 {
+			point = append(point, w)
+		}
+
 	}
 
 	sort.Ints(point)
@@ -290,9 +293,14 @@ func querypoint() {
 	fmt.Println(point[dividindex], point[dividindex*2], point[dividindex*3], point[dividindex*4], point[dividindex*5],
 		point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
 	)
+	var result []int
+	for i := 0; i < 10; i++ {
+		result = append(result, point[dividindex*i])
+	}
 
 	end := time.Now()
 	fmt.Println("end time: ", end.Sub(start).Seconds())
+	return result
 }
 
 func (w Welfarepoint) wtoi() int {
