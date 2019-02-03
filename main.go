@@ -108,7 +108,7 @@ func query(c *gin.Context) {
 
 func makescore(c *gin.Context) {
 	welfare := c.Param("welfare")
-
+	var w Welfarepoint
 	//key word regex for money
 	three := regexp.MustCompile("三節")
 	yearend := regexp.MustCompile("年終")
@@ -166,44 +166,52 @@ func makescore(c *gin.Context) {
 	permanent := regexp.MustCompile("外派")
 	permanent1 := regexp.MustCompile("長駐")
 
-	score :=
-		btou(three.MatchString(welfare)) +
-			btou(yearend.MatchString(welfare)) +
-			btou(birth.MatchString(welfare)) +
-			btou(marry.MatchString(welfare)) +
-			btou(maternity.MatchString(welfare)) +
-			btou(patent.MatchString(welfare)) +
-			btou(longterm.MatchString(welfare)) +
-			btou(insurance.MatchString(welfare)) +
-			btou(stock.MatchString(welfare) || stock1.MatchString(welfare)) +
-			btou(annual.MatchString(welfare)) +
-			btou(attendance.MatchString(welfare)) +
-			btou(performance.MatchString(welfare)) +
-			btou(travel.MatchString(welfare) || travel1.MatchString(welfare)) +
-			btou(consolation.MatchString(welfare)) +
-			btou(health.MatchString(welfare) || health1.MatchString(welfare)) +
-			btou(flexible.MatchString(welfare)) +
-			btou(paternityleave.MatchString(welfare)) +
-			btou(travelleave.MatchString(welfare)) +
-			btou(physiologyleave.MatchString(welfare)) +
-			btou(fullpaysickleave.MatchString(welfare) || fullpaysickleave1.MatchString(welfare)) +
-			btou(dorm.MatchString(welfare)) +
-			btou(restaurant.MatchString(welfare)) +
-			btou(childcare.MatchString(welfare) || childcare1.MatchString(welfare)) +
-			btou(transport.MatchString(welfare)) +
-			btou(servemeals.MatchString(welfare) || servemeals1.MatchString(welfare)) +
-			btou(snack.MatchString(welfare)) +
-			btou(afternoon.MatchString(welfare)) +
-			btou(gym.MatchString(welfare)) +
-			btou(education.MatchString(welfare)) +
-			btou(tail.MatchString(welfare) || tail1.MatchString(welfare)) +
-			btou(employeetravel.MatchString(welfare)) +
-			btou(society.MatchString(welfare)) +
-			btou(overtime.MatchString(welfare)) +
-			btou(shift.MatchString(welfare)) +
-			btou(permanent.MatchString(welfare) || permanent1.MatchString(welfare))
+	w.Three = three.MatchString(welfare)
+	w.Yearend = yearend.MatchString(welfare)
+	w.Bitrh = birth.MatchString(welfare)
+	w.Marry = marry.MatchString(welfare)
+	w.Maternity = maternity.MatchString(welfare)
+	w.Patent = patent.MatchString(welfare)
+	w.Longterm = longterm.MatchString(welfare)
+	w.Insurance = insurance.MatchString(welfare)
+	w.Stock = stock.MatchString(welfare) || stock1.MatchString(welfare)
+	w.Annual = annual.MatchString(welfare)
+	w.Attendance = attendance.MatchString(welfare)
+	w.Performance = performance.MatchString(welfare)
+	w.Travel = travel.MatchString(welfare) || travel1.MatchString(welfare)
+	w.Consolation = consolation.MatchString(welfare)
+	w.Health = health.MatchString(welfare) || health1.MatchString(welfare)
+	w.Flexible = flexible.MatchString(welfare)
+	w.Paternityleave = paternityleave.MatchString(welfare)
+	w.Travelleave = travelleave.MatchString(welfare)
+	w.Physiologyleave = physiologyleave.MatchString(welfare)
+	w.Fullpaysickleave = fullpaysickleave.MatchString(welfare) || fullpaysickleave1.MatchString(welfare)
+	w.Dorm = dorm.MatchString(welfare)
+	w.Restaurant = restaurant.MatchString(welfare)
+	w.Childcare = childcare.MatchString(welfare) || childcare1.MatchString(welfare)
+	w.Transport = transport.MatchString(welfare)
+	w.Servemeals = servemeals.MatchString(welfare) || servemeals1.MatchString(welfare)
+	w.Snack = snack.MatchString(welfare)
+	w.Afternoon = afternoon.MatchString(welfare)
+	w.Gym = gym.MatchString(welfare)
+	w.Education = education.MatchString(welfare)
+	w.Tail = tail.MatchString(welfare) || tail1.MatchString(welfare)
+	w.Employeetravel = employeetravel.MatchString(welfare)
+	w.Society = society.MatchString(welfare)
+	w.Overtime = overtime.MatchString(welfare)
+	w.Shift = shift.MatchString(welfare)
+	w.Permanent = permanent.MatchString(welfare) || permanent1.MatchString(welfare)
+
+	score := w.wtoi()
 	c.JSON(200, gin.H{
 		"message": score,
+	})
+}
+
+func salary(c *gin.Context) {
+	salary := c.Param("salary")
+	c.JSON(200, gin.H{
+		"salary": salary,
 	})
 }
 
@@ -212,11 +220,15 @@ func main() {
 	if err := db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
+
 	// dividpoint := querypoint()
+	// fmt.Println(dividpoint)
+
 	r := gin.Default()
 	r.GET("/welfare/:welfare", makescore)
 	r.GET("/law/:company", query)
 	r.GET("/query/:company", query)
+	r.GET("/salary/:salary", salary)
 	r.Run()
 }
 
@@ -280,9 +292,8 @@ func querypoint() []int {
 	// a := []int{}
 	for _, el := range welfarepoint {
 		w := el.wtoi()
-		if w > 0 {
-			point = append(point, w)
-		}
+
+		point = append(point, w)
 
 	}
 
