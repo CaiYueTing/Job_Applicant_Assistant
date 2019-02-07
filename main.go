@@ -31,14 +31,7 @@ type Record struct {
 	Ps          string `json:"ps"`
 }
 
-func homepage(c *gin.Context) {
-	name := c.Param("name")
-	c.JSON(200, gin.H{
-		"message": "hello" + name,
-	})
-}
-
-func query(c *gin.Context) {
+func lawsearch(c *gin.Context) {
 	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	company := c.Param("company")
 	str := `SELECT * FROM 104data.illegal_record where company like '%` + company + `%'`
@@ -95,14 +88,12 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/welfare/:welfare", makescore)
-	r.GET("/law/:company", query)
-	r.GET("/query/:company", query)
+	r.GET("/law/:company", lawsearch)
 	r.GET("/salary/:salary", salary)
 	r.Run()
 }
 
-func querypoint() []int {
-	start := time.Now()
+func getwelfare() []welfare.Welfarepoint {
 	str := `SELECT * FROM 104data.welfare`
 	rows, err := db.Query(str)
 	if err != nil {
@@ -128,57 +119,56 @@ func querypoint() []int {
 	}
 
 	rows.Close()
+	return welfarepoint
 
-	//write score to db
-	// vals := []interface{}{}
-	// sqlStr := `insert into welfarepoint(Custno, point) VALUES`
-	// for i, el := range welfarepoint {
-	// 	p := el.wtoi()
-	// 	vals = append(vals, el.Company, p)
-	// 	sqlStr += `(?,?),`
-	// 	if i%5000 == 0 || i == len(welfarepoint)-1 {
-	// 		sqlstart := time.Now()
-	// 		sqlStr = sqlStr[0 : len(sqlStr)-1]
-	// 		sqlStr = sqlStr + `ON DUPLICATE KEY UPDATE point = values(point)`
-	// 		stmt, err := db.Prepare(sqlStr)
-	// 		if err != nil {
-	// 			fmt.Println("prepare error ", err)
-	// 		}
-	// 		_, err = stmt.Exec(vals...)
-	// 		if err != nil {
-	// 			fmt.Println("exec error", err)
-	// 		}
-	// 		stmt.Close()
-	// 		sqlend := time.Now()
-	// 		fmt.Println(i, "complete", sqlend.Sub(sqlstart).Seconds())
-	// 		sqlStr = `insert into welfarepoint(Custno, point) VALUES`
-	// 		vals = []interface{}{}
-	// 	}
-	// }
-	// end write to db
+}
 
+func writepoint() {
+	w := getwelfare()
+
+	vals := []interface{}{}
+	sqlStr := `insert into welfarepoint(Custno, point) VALUES`
+	for i, el := range w {
+		p := el.Wtoi()
+		vals = append(vals, el.Company, p)
+		sqlStr += `(?,?),`
+		if i%5000 == 0 || i == len(w)-1 {
+			sqlstart := time.Now()
+			sqlStr = sqlStr[0 : len(sqlStr)-1]
+			sqlStr = sqlStr + `ON DUPLICATE KEY UPDATE point = values(point)`
+			stmt, err := db.Prepare(sqlStr)
+			if err != nil {
+				fmt.Println("prepare error ", err)
+			}
+			_, err = stmt.Exec(vals...)
+			if err != nil {
+				fmt.Println("exec error", err)
+			}
+			stmt.Close()
+			sqlend := time.Now()
+			fmt.Println(i, "complete", sqlend.Sub(sqlstart).Seconds())
+			sqlStr = `insert into welfarepoint(Custno, point) VALUES`
+			vals = []interface{}{}
+		}
+	}
+}
+
+func querypoint() []int {
+	welfarepoint := getwelfare()
 	point := []int{}
-	// a := []int{}
 	for _, el := range welfarepoint {
 		w := el.Wtoi()
-
 		point = append(point, w)
-
 	}
-
 	sort.Ints(point)
-	// fmt.Println(len(a))
 	dividindex := len(point) / 10
 	fmt.Println("slice index", dividindex)
 	fmt.Println(point[dividindex], point[dividindex*2], point[dividindex*3], point[dividindex*4], point[dividindex*5],
 		point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
 	)
 	var result []int
-	for i := 0; i < 10; i++ {
+	for i := 1; i <= 10; i++ {
 		result = append(result, point[dividindex*i])
 	}
-
-	end := time.Now()
-	fmt.Println("end time: ", end.Sub(start).Seconds())
 	return result
 }
