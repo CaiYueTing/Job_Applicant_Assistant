@@ -14,9 +14,16 @@ import (
 
 var err error
 var db = &sql.DB{}
+var p []int
 
 func init() {
 	db, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
+
+	if err := db.Ping(); err != nil {
+		log.Fatalln(err)
+	}
+
+	p = querypoint()
 }
 
 type Record struct {
@@ -35,7 +42,6 @@ func lawsearch(c *gin.Context) {
 	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	company := c.Param("company")
 	str := `SELECT * FROM 104data.illegal_record where company like '%` + company + `%'`
-	fmt.Println(str)
 	row, err := db.Query(str)
 	defer row.Close()
 	if err != nil {
@@ -52,8 +58,6 @@ func lawsearch(c *gin.Context) {
 	if err = row.Err(); err != nil {
 		log.Fatalln(err)
 	}
-	fmt.Println("")
-	fmt.Println(records)
 	c.JSON(200, gin.H{
 		"records": records,
 	})
@@ -67,6 +71,7 @@ func makescore(c *gin.Context) {
 	score := w.Wtoi()
 	c.JSON(200, gin.H{
 		"message": score,
+		"dd":      p,
 	})
 }
 
@@ -77,16 +82,18 @@ func salary(c *gin.Context) {
 	})
 }
 
+func middleware() gin.HandlerFunc {
+	fmt.Println("middleware here")
+
+	return func(c *gin.Context) {
+		c.Next()
+	}
+}
+
 func main() {
 
-	if err := db.Ping(); err != nil {
-		log.Fatalln(err)
-	}
-
-	// dividpoint := querypoint()
-	// fmt.Println(dividpoint)
-
 	r := gin.Default()
+	r.Use(middleware())
 	r.GET("/welfare/:welfare", makescore)
 	r.GET("/law/:company", lawsearch)
 	r.GET("/salary/:salary", salary)
@@ -158,7 +165,9 @@ func querypoint() []int {
 	point := []int{}
 	for _, el := range welfarepoint {
 		w := el.Wtoi()
-		point = append(point, w)
+		if w > 0 {
+			point = append(point, w)
+		}
 	}
 	sort.Ints(point)
 	dividindex := len(point) / 10
@@ -167,7 +176,7 @@ func querypoint() []int {
 		point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
 	)
 	var result []int
-	for i := 1; i <= 10; i++ {
+	for i := 1; i < 10; i++ {
 		result = append(result, point[dividindex*i])
 	}
 	return result
