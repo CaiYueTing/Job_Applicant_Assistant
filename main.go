@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"net/http"
 	"sort"
 	"thesis/welfare"
 	"time"
@@ -82,21 +83,28 @@ func salary(c *gin.Context) {
 	})
 }
 
-func middleware() gin.HandlerFunc {
-	fmt.Println("middleware here")
-
-	return func(c *gin.Context) {
-		c.Next()
-	}
+func postscore(c *gin.Context) {
+	wstring := c.PostForm("wdata")
+	var w welfare.Welfarepoint
+	w.Match(wstring)
+	score := w.Wtoi()
+	c.JSON(http.StatusOK, gin.H{
+		"message": score,
+		"dd":      p,
+	})
 }
 
 func main() {
 
 	r := gin.Default()
-	r.Use(middleware())
-	r.GET("/welfare/:welfare", makescore)
-	r.GET("/law/:company", lawsearch)
-	r.GET("/salary/:salary", salary)
+
+	cardAPI := r.Group("/card")
+	{
+		cardAPI.POST("/welfare", postscore)
+		cardAPI.GET("/law/:company", lawsearch)
+		cardAPI.GET("/salary/:salary", salary)
+	}
+
 	r.Run()
 }
 
