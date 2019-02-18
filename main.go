@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 	"thesis/welfare"
 	"time"
 
@@ -37,6 +38,23 @@ type Record struct {
 	Law         string `json:"law"`
 	Description string `json:"description"`
 	Ps          string `json:"ps"`
+}
+
+type Analysis struct {
+	Category string `json:"category"`
+	Target   struct {
+		Industry []Analyresult `json:"industry"`
+		Exp      []Analyresult `json:"exp"`
+		District []Analyresult `json:"district"`
+	} `json:"target"`
+}
+
+type Analyresult struct {
+	Description string `json:"description"`
+	Right       int    `json:"right"`
+	Left        int    `json:"left"`
+	Middle      int    `json:"middle"`
+	Average     int    `json:"average"`
 }
 
 func lawsearch(c *gin.Context) {
@@ -94,6 +112,80 @@ func postscore(c *gin.Context) {
 	})
 }
 
+func category(c *gin.Context) {
+	cstring := c.PostForm("cdata")
+	as := strings.Split(cstring, "、")
+	result := []string{}
+	for _, v := range as {
+		strings.Replace(v, "、", "", -1)
+		str := `SELECT CategoryId FROM 104data.jobcategory where category = '` + v + `'`
+		row, err := db.Query(str)
+		if err != nil {
+			log.Fatal(err)
+		}
+		for row.Next() {
+			var c string
+			row.Scan(&c)
+			result = append(result, c)
+		}
+	}
+	r := []Analysis{}
+	for _, v := range result {
+		var analysis Analysis
+		for i := 0; i < 3; i++ {
+			analystr := ""
+			if i == 0 {
+				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM 104data.cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
+				rows, err := db.Query(analystr)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				for rows.Next() {
+					var ar Analyresult
+					rows.Scan(&analysis.Category, &ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
+					analysis.Target.Industry = append(analysis.Target.Industry, ar)
+				}
+				rows.Close()
+			}
+			if i == 1 {
+				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM 104data.catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
+				rows, err := db.Query(analystr)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				for rows.Next() {
+					var ar Analyresult
+					rows.Scan(&ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
+					analysis.Target.District = append(analysis.Target.District, ar)
+				}
+				rows.Close()
+			}
+			if i == 2 {
+				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM 104data.cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
+				rows, err := db.Query(analystr)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				for rows.Next() {
+					var ar Analyresult
+					rows.Scan(&ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
+					analysis.Target.Exp = append(analysis.Target.Exp, ar)
+				}
+				rows.Close()
+			}
+			fmt.Println(analysis)
+		}
+		r = append(r, analysis)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": r,
+	})
+}
+
 func main() {
 
 	r := gin.Default()
@@ -103,6 +195,7 @@ func main() {
 		cardAPI.POST("/welfare", postscore)
 		cardAPI.GET("/law/:company", lawsearch)
 		cardAPI.GET("/salary/:salary", salary)
+		cardAPI.POST("/category", category)
 	}
 
 	r.Run()
