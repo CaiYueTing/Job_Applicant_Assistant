@@ -130,7 +130,7 @@ func category(c *gin.Context) {
 		}
 	}
 	r := []Analysis{}
-	for _, v := range result {
+	for k, v := range result {
 		var analysis Analysis
 		for i := 0; i < 3; i++ {
 			analystr := ""
@@ -146,6 +146,10 @@ func category(c *gin.Context) {
 					rows.Scan(&analysis.Category, &ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
 					analysis.Target.Industry = append(analysis.Target.Industry, ar)
 				}
+				if analysis.Category == "" {
+					analysis.Category = as[k]
+				}
+
 				rows.Close()
 			}
 			if i == 1 {
@@ -176,7 +180,7 @@ func category(c *gin.Context) {
 				}
 				rows.Close()
 			}
-			fmt.Println(analysis)
+			// fmt.Println(analysis)
 		}
 		r = append(r, analysis)
 	}
