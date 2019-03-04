@@ -19,10 +19,11 @@ var db = &sql.DB{}
 var p []int
 
 func init() {
-	db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
-	if err = db.Ping(); err != nil {
-		log.Fatal(err)
-	}
+	db, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
+	// db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
+	// if err = db.Ping(); err != nil {
+	// 	log.Fatal(err)
+	// }
 	p = querypoint()
 }
 
@@ -58,7 +59,7 @@ type Analyresult struct {
 func lawsearch(c *gin.Context) {
 	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	company := c.Param("company")
-	str := `SELECT * FROM jobdata.illegal_record where company like '%` + company + `%'`
+	str := `SELECT * FROM illegal_record where company like '%` + company + `%'`
 	row, err := db.Query(str)
 	defer row.Close()
 	if err != nil {
@@ -117,7 +118,7 @@ func category(c *gin.Context) {
 	result := []string{}
 	for _, v := range as {
 		strings.Replace(v, "、", "", -1)
-		str := `SELECT CategoryId FROM jobdata.jobcategory where category = '` + v + `'`
+		str := `SELECT CategoryId FROM jobcategory where category = '` + v + `'`
 		row, err := db.Query(str)
 		if err != nil {
 			log.Fatal(err)
@@ -134,7 +135,7 @@ func category(c *gin.Context) {
 		for i := 0; i < 3; i++ {
 			analystr := ""
 			if i == 0 {
-				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM jobdata.cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
+				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
 				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
@@ -152,7 +153,7 @@ func category(c *gin.Context) {
 				rows.Close()
 			}
 			if i == 1 {
-				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM jobdata.catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
+				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
 				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
@@ -166,7 +167,7 @@ func category(c *gin.Context) {
 				rows.Close()
 			}
 			if i == 2 {
-				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM jobdata.cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
+				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
 				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
@@ -222,10 +223,11 @@ func main() {
 	}
 
 	r.Run(":8080")
+	// writepoint()
 }
 
 func getwelfare() []welfare.Welfarepoint {
-	str := `SELECT * FROM jobdata.welfare`
+	str := `SELECT * FROM welfare`
 	rows, err := db.Query(str)
 	if err != nil {
 		log.Fatal(err)

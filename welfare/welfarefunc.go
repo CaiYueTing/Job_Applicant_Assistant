@@ -68,7 +68,7 @@ func (w *Welfarepoint) Match2(welfare string) map[string][]string {
 	stock := []string{"股票", "入股"}
 	annual := []string{"分紅"}
 	attendance := []string{"全勤"}
-	performance := []string{"績效"}
+	performance := []string{"績效", "業績"}
 	travel := []string{"旅遊補助", "旅遊津貼"}
 	consolation := []string{"慰問"}
 	health := []string{"健康檢查", "體檢", "健檢"}
@@ -83,7 +83,7 @@ func (w *Welfarepoint) Match2(welfare string) map[string][]string {
 	restaurant := []string{"餐廳"}
 	childcare := []string{"托兒", "育兒"}
 	transport := []string{"交通"}
-	servemeals := []string{"供餐", "餐點", "供應午餐", "供應晚餐"}
+	servemeals := []string{"供餐", "餐點", "供應午餐", "供應晚餐", "員工餐"}
 	afternoon := []string{"下午茶"}
 	snack := []string{"點心"}
 	gym := []string{"健身房"}
