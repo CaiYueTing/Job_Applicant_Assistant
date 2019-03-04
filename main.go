@@ -19,12 +19,10 @@ var db = &sql.DB{}
 var p []int
 
 func init() {
-	db, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
-
-	if err := db.Ping(); err != nil {
-		log.Fatalln(err)
+	db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
+	if err = db.Ping(); err != nil {
+		log.Fatal(err)
 	}
-
 	p = querypoint()
 }
 
@@ -60,7 +58,7 @@ type Analyresult struct {
 func lawsearch(c *gin.Context) {
 	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	company := c.Param("company")
-	str := `SELECT * FROM 104data.illegal_record where company like '%` + company + `%'`
+	str := `SELECT * FROM jobdata.illegal_record where company like '%` + company + `%'`
 	row, err := db.Query(str)
 	defer row.Close()
 	if err != nil {
@@ -104,11 +102,12 @@ func salary(c *gin.Context) {
 func postscore(c *gin.Context) {
 	wstring := c.PostForm("wdata")
 	var w welfare.Welfarepoint
-	w.Match(wstring)
+	r := w.Match2(wstring)
 	score := w.Wtoi()
 	c.JSON(http.StatusOK, gin.H{
 		"message": score,
 		"dd":      p,
+		"r":       r,
 	})
 }
 
@@ -118,7 +117,7 @@ func category(c *gin.Context) {
 	result := []string{}
 	for _, v := range as {
 		strings.Replace(v, "、", "", -1)
-		str := `SELECT CategoryId FROM 104data.jobcategory where category = '` + v + `'`
+		str := `SELECT CategoryId FROM jobdata.jobcategory where category = '` + v + `'`
 		row, err := db.Query(str)
 		if err != nil {
 			log.Fatal(err)
@@ -135,7 +134,7 @@ func category(c *gin.Context) {
 		for i := 0; i < 3; i++ {
 			analystr := ""
 			if i == 0 {
-				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM 104data.cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
+				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM jobdata.cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
 				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
@@ -153,7 +152,7 @@ func category(c *gin.Context) {
 				rows.Close()
 			}
 			if i == 1 {
-				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM 104data.catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
+				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM jobdata.catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
 				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
@@ -167,7 +166,7 @@ func category(c *gin.Context) {
 				rows.Close()
 			}
 			if i == 2 {
-				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM 104data.cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
+				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM jobdata.cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
 				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
@@ -190,9 +189,8 @@ func category(c *gin.Context) {
 	})
 }
 
-func main() {
-
-	r := gin.Default()
+func routerEngine() *gin.Engine {
+	r := gin.New()
 
 	cardAPI := r.Group("/card")
 	{
@@ -202,11 +200,32 @@ func main() {
 		cardAPI.POST("/category", category)
 	}
 
-	r.Run()
+	return r
+}
+
+func hello(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"hello": "word",
+	})
+}
+
+func main() {
+
+	r := gin.Default()
+	r.GET("/", hello)
+	cardAPI := r.Group("/card")
+	{
+		cardAPI.POST("/welfare", postscore)
+		cardAPI.GET("/law/:company", lawsearch)
+		cardAPI.GET("/salary/:salary", salary)
+		cardAPI.POST("/category", category)
+	}
+
+	r.Run(":8080")
 }
 
 func getwelfare() []welfare.Welfarepoint {
-	str := `SELECT * FROM 104data.welfare`
+	str := `SELECT * FROM jobdata.welfare`
 	rows, err := db.Query(str)
 	if err != nil {
 		log.Fatal(err)

@@ -1,6 +1,8 @@
 package welfare
 
-import "regexp"
+import (
+	"regexp"
+)
 
 type Welfarepoint struct {
 	Company          string `json:"company"`
@@ -39,6 +41,208 @@ type Welfarepoint struct {
 	Overtime         bool   `json:"overtime"`
 	Shift            bool   `json:"shift"`
 	Permanent        bool   `json:"permanent"`
+}
+
+func Regwel(s []string, welfare string) bool {
+	result := false
+	for _, v := range s {
+		r := regexp.MustCompile(v)
+		if r.MatchString(welfare) {
+			result = true
+			return result
+		}
+	}
+	return result
+}
+
+func (w *Welfarepoint) Match2(welfare string) map[string][]string {
+	reg := map[string][]string{}
+	three := []string{"三節"}
+	yearend := []string{"年終", "年節"}
+	birth := []string{"生日"}
+	marry := []string{"結婚"}
+	maternity := []string{"生育"}
+	patent := []string{"專利"}
+	longterm := []string{"久任"}
+	insurance := []string{"團保", "團體保險"}
+	stock := []string{"股票", "入股"}
+	annual := []string{"分紅"}
+	attendance := []string{"全勤"}
+	performance := []string{"績效"}
+	travel := []string{"旅遊補助", "旅遊津貼"}
+	consolation := []string{"慰問"}
+	health := []string{"健康檢查", "體檢", "健檢"}
+
+	flexible := []string{"彈性上下班"}
+	paternityleave := []string{"陪產假"}
+	travelleave := []string{"旊遊假"}
+	physiologyleave := []string{"生理假"}
+	fullpaysickleave := []string{"全薪病假", "不扣薪病假"}
+
+	dorm := []string{"宿舍"}
+	restaurant := []string{"餐廳"}
+	childcare := []string{"托兒", "育兒"}
+	transport := []string{"交通"}
+	servemeals := []string{"供餐", "餐點", "供應午餐", "供應晚餐"}
+	afternoon := []string{"下午茶"}
+	snack := []string{"點心"}
+	gym := []string{"健身房"}
+
+	education := []string{"教育訓練", "培訓"}
+	tail := []string{"尾牙", "旺年會"}
+	employeetravel := []string{"員工旅遊", "國內旅遊", "國外旅遊"}
+	society := []string{"社團"}
+
+	overtime := regexp.MustCompile("加班")
+	overtime1 := regexp.MustCompile("無加班")
+	overtime2 := regexp.MustCompile("不加班")
+	overtime3 := regexp.MustCompile("不鼓勵加班")
+	overtime4 := regexp.MustCompile("免加班")
+	shift := regexp.MustCompile("輪班")
+	shift1 := regexp.MustCompile("無需輪班")
+	shift2 := regexp.MustCompile("不輪班")
+	shift3 := regexp.MustCompile("不須輪班")
+	shift4 := regexp.MustCompile("免加班/輪班")
+	permanent := regexp.MustCompile("外派")
+	permanent1 := regexp.MustCompile("長駐")
+
+	w.Three = Regwel(three, welfare)
+	if w.Three {
+		reg["economic"] = append(reg["economic"], three[0])
+	}
+	w.Yearend = Regwel(yearend, welfare)
+	if w.Yearend {
+		reg["economic"] = append(reg["economic"], yearend[0])
+	}
+	w.Bitrh = Regwel(birth, welfare)
+	if w.Bitrh {
+		reg["economic"] = append(reg["economic"], birth[0])
+	}
+	w.Marry = Regwel(marry, welfare)
+	if w.Marry {
+		reg["economic"] = append(reg["economic"], marry[0])
+	}
+	w.Maternity = Regwel(maternity, welfare)
+	if w.Maternity {
+		reg["economic"] = append(reg["economic"], maternity[0])
+	}
+	w.Patent = Regwel(patent, welfare)
+	if w.Patent {
+		reg["economic"] = append(reg["economic"], patent[0])
+	}
+	w.Longterm = Regwel(longterm, welfare)
+	if w.Longterm {
+		reg["economic"] = append(reg["economic"], longterm[0])
+	}
+
+	w.Stock = Regwel(stock, welfare)
+	if w.Stock {
+		reg["economic"] = append(reg["economic"], stock[0])
+	}
+	w.Annual = Regwel(annual, welfare)
+	if w.Annual {
+		reg["economic"] = append(reg["economic"], annual[0])
+	}
+	w.Attendance = Regwel(attendance, welfare)
+	if w.Attendance {
+		reg["economic"] = append(reg["economic"], attendance[0])
+	}
+	w.Performance = Regwel(performance, welfare)
+	if w.Performance {
+		reg["economic"] = append(reg["economic"], performance[0])
+	}
+	w.Travel = Regwel(travel, welfare)
+	if w.Travel {
+		reg["economic"] = append(reg["economic"], travel[0])
+	}
+	w.Consolation = Regwel(consolation, welfare)
+	if w.Consolation {
+		reg["economic"] = append(reg["economic"], consolation[0])
+	}
+
+	w.Flexible = Regwel(flexible, welfare)
+	if w.Flexible {
+		reg["time"] = append(reg["time"], flexible[0])
+	}
+	w.Paternityleave = Regwel(paternityleave, welfare)
+	if w.Paternityleave {
+		reg["time"] = append(reg["time"], paternityleave[0])
+	}
+	w.Physiologyleave = Regwel(physiologyleave, welfare)
+	if w.Physiologyleave {
+		reg["time"] = append(reg["time"], physiologyleave[0])
+	}
+	w.Travelleave = Regwel(travelleave, welfare)
+	if w.Travelleave {
+		reg["time"] = append(reg["time"], travelleave[0])
+	}
+	w.Fullpaysickleave = Regwel(fullpaysickleave, welfare)
+	if w.Fullpaysickleave {
+		reg["time"] = append(reg["time"], fullpaysickleave[0])
+	}
+
+	w.Dorm = Regwel(dorm, welfare)
+	if w.Dorm {
+		reg["infra"] = append(reg["infra"], dorm[0])
+	}
+	w.Restaurant = Regwel(restaurant, welfare)
+	if w.Restaurant {
+		reg["infra"] = append(reg["infra"], restaurant[0])
+	}
+	w.Childcare = Regwel(childcare, welfare)
+	if w.Childcare {
+		reg["infra"] = append(reg["infra"], childcare[0])
+	}
+	w.Transport = Regwel(transport, welfare)
+	if w.Transport {
+		reg["infra"] = append(reg["infra"], transport[0])
+	}
+
+	w.Servemeals = Regwel(servemeals, welfare)
+	if w.Servemeals {
+		reg["person"] = append(reg["person"], servemeals[0])
+	}
+	w.Snack = Regwel(snack, welfare)
+	if w.Snack {
+		reg["person"] = append(reg["person"], snack[0])
+	}
+	w.Afternoon = Regwel(afternoon, welfare)
+	if w.Afternoon {
+		reg["person"] = append(reg["person"], afternoon[0])
+	}
+	w.Education = Regwel(education, welfare)
+	if w.Education {
+		reg["person"] = append(reg["person"], education[0])
+	}
+	w.Health = Regwel(health, welfare)
+	if w.Health {
+		reg["person"] = append(reg["person"], health[0])
+	}
+	w.Insurance = Regwel(insurance, welfare)
+	if w.Insurance {
+		reg["person"] = append(reg["person"], insurance[0])
+	}
+
+	w.Gym = Regwel(gym, welfare)
+	if w.Gym {
+		reg["entertain"] = append(reg["entertain"], gym[0])
+	}
+	w.Tail = Regwel(tail, welfare)
+	if w.Tail {
+		reg["entertain"] = append(reg["entertain"], tail[0])
+	}
+	w.Employeetravel = Regwel(employeetravel, welfare)
+	if w.Employeetravel {
+		reg["entertain"] = append(reg["entertain"], employeetravel[0])
+	}
+	w.Society = Regwel(society, welfare)
+	if w.Society {
+		reg["entertain"] = append(reg["entertain"], society[0])
+	}
+	w.Overtime = overtime.MatchString(welfare) && !(overtime1.MatchString(welfare) || overtime2.MatchString(welfare) || overtime3.MatchString(welfare) || overtime4.MatchString(welfare))
+	w.Shift = shift.MatchString(welfare) && !(shift1.MatchString(welfare) || shift2.MatchString(welfare) || shift3.MatchString(welfare) || shift4.MatchString(welfare))
+	w.Permanent = permanent.MatchString(welfare) || permanent1.MatchString(welfare)
+	return reg
 }
 
 func (w *Welfarepoint) Match(welfare string) {
@@ -159,6 +363,13 @@ func (w Welfarepoint) Wtoi() int {
 			btou(w.Snack) + btou(w.Afternoon) + btou(w.Gym)*3 + btou(w.Education)*3 + btou(w.Tail)*3 +
 			btou(w.Employeetravel)*3 + btou(w.Society)*3 + btou(w.Overtime)*(-1) + btou(w.Shift)*(-1) + btou(w.Permanent)*(-1)
 	return result
+}
+
+func (w Welfarepoint) Wtochart() ([]int, []string) {
+	resultint := []int{}
+	resultstr := []string{}
+
+	return resultint, resultstr
 }
 
 func btou(b bool) int {
