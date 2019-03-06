@@ -242,6 +242,23 @@ func (w *Welfarepoint) Match2(welfare string) map[string][]string {
 	w.Overtime = overtime.MatchString(welfare) && !(overtime1.MatchString(welfare) || overtime2.MatchString(welfare) || overtime3.MatchString(welfare) || overtime4.MatchString(welfare))
 	w.Shift = shift.MatchString(welfare) && !(shift1.MatchString(welfare) || shift2.MatchString(welfare) || shift3.MatchString(welfare) || shift4.MatchString(welfare))
 	w.Permanent = permanent.MatchString(welfare) || permanent1.MatchString(welfare)
+
+	if reg["entertain"] == nil {
+		reg["entertain"] = append(reg["entertain"])
+	}
+	if reg["economic"] == nil {
+		reg["economic"] = append(reg["economic"])
+	}
+	if reg["time"] == nil {
+		reg["time"] = append(reg["time"])
+	}
+	if reg["person"] == nil {
+		reg["person"] = append(reg["person"])
+	}
+	if reg["infra"] == nil {
+		reg["infra"] = append(reg["infra"])
+	}
+
 	return reg
 }
 
