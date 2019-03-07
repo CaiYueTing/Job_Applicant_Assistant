@@ -10,6 +10,9 @@ import (
 	"thesis/welfare"
 	"time"
 
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/autotls"
+
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -19,11 +22,11 @@ var db = &sql.DB{}
 var p []int
 
 func init() {
-	db, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
-	// db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
-	// if err = db.Ping(); err != nil {
-	// 	log.Fatal(err)
-	// }
+	// db, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
+	db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
+	if err = db.Ping(); err != nil {
+		log.Fatal(err)
+	}
 	p = querypoint()
 }
 
@@ -213,6 +216,7 @@ func hello(c *gin.Context) {
 func main() {
 
 	r := gin.Default()
+	r.Use(cors.Default())
 	r.GET("/", hello)
 	cardAPI := r.Group("/card")
 	{
@@ -222,7 +226,9 @@ func main() {
 		cardAPI.POST("/category", category)
 	}
 
-	r.Run(":8080")
+	log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
+
+	// r.Run(":80")
 	// writepoint()
 }
 
