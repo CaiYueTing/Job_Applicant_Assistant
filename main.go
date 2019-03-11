@@ -1,211 +1,30 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
-	"log"
 	"net/http"
-	"sort"
-	"strings"
-	"thesis/welfare"
-	"time"
+	"thesis/api"
 
 	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/autotls"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 var err error
-var db = &sql.DB{}
-var p []int
 
-func init() {
-	// db, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
-	db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
-	if err = db.Ping(); err != nil {
-		log.Fatal(err)
-	}
-	p = querypoint()
-}
+// func routerEngine() *gin.Engine {
+// 	r := gin.New()
 
-type Record struct {
-	ID          int    `json:"id"`
-	Location    string `json:"location"`
-	Publicdate  string `json:"publicdate"`
-	Company     string `json:"company"`
-	Dealdate    string `json:"dealdate"`
-	Govnumber   string `json:"govnumber"`
-	Law         string `json:"law"`
-	Description string `json:"description"`
-	Ps          string `json:"ps"`
-}
+// 	cardAPI := r.Group("/card")
+// 	{
+// 		cardAPI.POST("/welfare", postscore)
+// 		cardAPI.GET("/law/:company", lawsearch)
+// 		cardAPI.GET("/salary/:salary", salary)
+// 		cardAPI.POST("/category", category)
+// 	}
 
-type Analysis struct {
-	Category string `json:"category"`
-	Target   struct {
-		Industry []Analyresult `json:"industry"`
-		Exp      []Analyresult `json:"exp"`
-		District []Analyresult `json:"district"`
-	} `json:"target"`
-}
-
-type Analyresult struct {
-	Description string `json:"description"`
-	Right       int    `json:"right"`
-	Left        int    `json:"left"`
-	Middle      int    `json:"middle"`
-	Average     int    `json:"average"`
-}
-
-func lawsearch(c *gin.Context) {
-	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	company := c.Param("company")
-	str := `SELECT * FROM illegal_record where company like '%` + company + `%'`
-	row, err := db.Query(str)
-	defer row.Close()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	records := []Record{}
-
-	for row.Next() {
-		var record Record
-		row.Scan(&record.ID, &record.Location, &record.Publicdate, &record.Company, &record.Dealdate, &record.Govnumber, &record.Law, &record.Description, &record.Ps)
-		records = append(records, record)
-	}
-	if err = row.Err(); err != nil {
-		log.Fatalln(err)
-	}
-	c.JSON(200, gin.H{
-		"records": records,
-	})
-
-}
-
-func makescore(c *gin.Context) {
-	wstring := c.Param("welfare")
-	var w welfare.Welfarepoint
-	w.Match(wstring)
-	score := w.Wtoi()
-	c.JSON(200, gin.H{
-		"message": score,
-		"dd":      p,
-	})
-}
-
-func salary(c *gin.Context) {
-	salary := c.Param("salary")
-	c.JSON(200, gin.H{
-		"salary": salary,
-	})
-}
-
-func postscore(c *gin.Context) {
-	wstring := c.PostForm("wdata")
-	var w welfare.Welfarepoint
-	r := w.Match2(wstring)
-	score := w.Wtoi()
-	c.JSON(http.StatusOK, gin.H{
-		"message": score,
-		"dd":      p,
-		"r":       r,
-	})
-}
-
-func category(c *gin.Context) {
-	cstring := c.PostForm("cdata")
-	as := strings.Split(cstring, "、")
-	result := []string{}
-	for _, v := range as {
-		strings.Replace(v, "、", "", -1)
-		str := `SELECT CategoryId FROM jobcategory where category = '` + v + `'`
-		row, err := db.Query(str)
-		if err != nil {
-			log.Fatal(err)
-		}
-		for row.Next() {
-			var c string
-			row.Scan(&c)
-			result = append(result, c)
-		}
-	}
-	r := []Analysis{}
-	for k, v := range result {
-		var analysis Analysis
-		for i := 0; i < 3; i++ {
-			analystr := ""
-			if i == 0 {
-				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
-				rows, err := db.Query(analystr)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				for rows.Next() {
-					var ar Analyresult
-					rows.Scan(&analysis.Category, &ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
-					analysis.Target.Industry = append(analysis.Target.Industry, ar)
-				}
-				if analysis.Category == "" {
-					analysis.Category = as[k]
-				}
-
-				rows.Close()
-			}
-			if i == 1 {
-				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
-				rows, err := db.Query(analystr)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				for rows.Next() {
-					var ar Analyresult
-					rows.Scan(&ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
-					analysis.Target.District = append(analysis.Target.District, ar)
-				}
-				rows.Close()
-			}
-			if i == 2 {
-				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
-				rows, err := db.Query(analystr)
-				if err != nil {
-					log.Fatal(err)
-				}
-
-				for rows.Next() {
-					var ar Analyresult
-					rows.Scan(&ar.Description, &ar.Left, &ar.Right, &ar.Middle, &ar.Average)
-					analysis.Target.Exp = append(analysis.Target.Exp, ar)
-				}
-				rows.Close()
-			}
-			// fmt.Println(analysis)
-		}
-		r = append(r, analysis)
-	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message": r,
-	})
-}
-
-func routerEngine() *gin.Engine {
-	r := gin.New()
-
-	cardAPI := r.Group("/card")
-	{
-		cardAPI.POST("/welfare", postscore)
-		cardAPI.GET("/law/:company", lawsearch)
-		cardAPI.GET("/salary/:salary", salary)
-		cardAPI.POST("/category", category)
-	}
-
-	return r
-}
+// 	return r
+// }
 
 func hello(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
@@ -220,96 +39,14 @@ func main() {
 	r.GET("/", hello)
 	cardAPI := r.Group("/card")
 	{
-		cardAPI.POST("/welfare", postscore)
-		cardAPI.GET("/law/:company", lawsearch)
-		cardAPI.GET("/salary/:salary", salary)
-		cardAPI.POST("/category", category)
+		cardAPI.POST("/welfare", api.Postscore)
+		cardAPI.GET("/law/:company", api.Lawsearch)
+		cardAPI.GET("/salary/:salary", api.Salary)
+		cardAPI.POST("/category", api.Category)
 	}
 
-	log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
+	// log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
 
-	// r.Run(":80")
+	r.Run(":80")
 	// writepoint()
-}
-
-func getwelfare() []welfare.Welfarepoint {
-	str := `SELECT * FROM welfare`
-	rows, err := db.Query(str)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	welfarepoint := []welfare.Welfarepoint{}
-
-	for rows.Next() {
-		var w welfare.Welfarepoint
-		rows.Scan(
-			&w.Company,
-			&w.Three, &w.Yearend, &w.Bitrh, &w.Marry, &w.Maternity,
-			&w.Patent, &w.Longterm, &w.Insurance, &w.Stock, &w.Annual,
-			&w.Attendance, &w.Performance, &w.Travel, &w.Consolation, &w.Health,
-			&w.Flexible, &w.Paternityleave, &w.Travelleave, &w.Physiologyleave, &w.Fullpaysickleave,
-			&w.Dorm, &w.Restaurant, &w.Childcare, &w.Transport, &w.Servemeals,
-			&w.Snack, &w.Afternoon, &w.Gym, &w.Education, &w.Tail,
-			&w.Employeetravel, &w.Society, &w.Overtime, &w.Shift, &w.Permanent,
-		)
-
-		welfarepoint = append(welfarepoint, w)
-	}
-
-	rows.Close()
-	return welfarepoint
-
-}
-
-func writepoint() {
-	w := getwelfare()
-
-	vals := []interface{}{}
-	sqlStr := `insert into welfarepoint(Custno, point) VALUES`
-	for i, el := range w {
-		p := el.Wtoi()
-		vals = append(vals, el.Company, p)
-		sqlStr += `(?,?),`
-		if i%5000 == 0 || i == len(w)-1 {
-			sqlstart := time.Now()
-			sqlStr = sqlStr[0 : len(sqlStr)-1]
-			sqlStr = sqlStr + `ON DUPLICATE KEY UPDATE point = values(point)`
-			stmt, err := db.Prepare(sqlStr)
-			if err != nil {
-				fmt.Println("prepare error ", err)
-			}
-			_, err = stmt.Exec(vals...)
-			if err != nil {
-				fmt.Println("exec error", err)
-			}
-			stmt.Close()
-			sqlend := time.Now()
-			fmt.Println(i, "complete", sqlend.Sub(sqlstart).Seconds())
-			sqlStr = `insert into welfarepoint(Custno, point) VALUES`
-			vals = []interface{}{}
-		}
-	}
-}
-
-func querypoint() []int {
-	welfarepoint := getwelfare()
-	point := []int{}
-	for _, el := range welfarepoint {
-		w := el.Wtoi()
-		if w > 0 {
-			point = append(point, w)
-		}
-	}
-	sort.Ints(point)
-	dividindex := len(point) / 10
-	fmt.Println("slice index", dividindex)
-	fmt.Println(point[dividindex], point[dividindex*2], point[dividindex*3], point[dividindex*4], point[dividindex*5],
-		point[dividindex*6], point[dividindex*7], point[dividindex*8], point[dividindex*9], point[len(point)-1],
-	)
-	var result []int
-	for i := 1; i < 10; i++ {
-		result = append(result, point[dividindex*i])
-	}
-	return result
 }
