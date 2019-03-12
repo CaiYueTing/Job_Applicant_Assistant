@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"thesis/connectsql"
+	"thesis/crawler"
 	"thesis/welfare"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +42,7 @@ type Analyresult struct {
 
 var thesisdb = connectsql.Localdb
 var p []int
+var err error
 
 func init() {
 	p = connectsql.Querypoint()
@@ -74,7 +76,14 @@ func Lawsearch(c *gin.Context) {
 		a := strings.Split(s, "_")
 		s = a[1]
 	}
+	ch := make(chan string)
+	var qollie string
+	go func() {
+		qollie := crawler.CrawlQollie(s)
+		ch <- qollie
+	}()
 
+	qollie = <-ch
 	str := `SELECT * FROM illegal_record where company like '%` + s + `%'`
 	row, err := thesisdb.Query(str)
 	defer row.Close()
@@ -94,6 +103,7 @@ func Lawsearch(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"records": records,
+		"url":     qollie,
 	})
 
 }

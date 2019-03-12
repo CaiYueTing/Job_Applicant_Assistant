@@ -12,20 +12,6 @@ import (
 
 var err error
 
-// func routerEngine() *gin.Engine {
-// 	r := gin.New()
-
-// 	cardAPI := r.Group("/card")
-// 	{
-// 		cardAPI.POST("/welfare", postscore)
-// 		cardAPI.GET("/law/:company", lawsearch)
-// 		cardAPI.GET("/salary/:salary", salary)
-// 		cardAPI.POST("/category", category)
-// 	}
-
-// 	return r
-// }
-
 func hello(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"hello": "word",
@@ -45,6 +31,12 @@ func main() {
 		cardAPI.POST("/category", api.Category)
 	}
 
+	// m := autocert.Manager{
+	// 	Prompt:     autocert.AcceptTOS,
+	// 	HostPolicy: autocert.HostWhitelist("welfaredetector.tk", "www.welfaredetector.tk"),
+	// 	Cache:      autocert.DirCache("/var/www/.cache"),
+	// }
+	// log.Fatal(autotls.RunWithManager(r, &m))
 	// log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
 
 	r.Run(":80")
