@@ -76,8 +76,8 @@ func Lawsearch(c *gin.Context) {
 		a := strings.Split(s, "_")
 		s = a[1]
 	}
-	ch := make(chan string)
-	var qollie string
+	ch := make(chan crawler.Comment)
+	var qollie crawler.Comment
 	go func() {
 		qollie := crawler.CrawlQollie(s)
 		ch <- qollie
@@ -103,7 +103,7 @@ func Lawsearch(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"records": records,
-		"url":     qollie,
+		"qollie":  qollie,
 	})
 
 }

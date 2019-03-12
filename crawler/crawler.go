@@ -8,6 +8,17 @@ import (
 	"strings"
 )
 
+type Comment struct {
+	Data struct {
+		GetCompanyStat struct {
+			ID     string `json:"id"`
+			Good   int    `json:"good"`
+			Bad    int    `json:"bad"`
+			Normal int    `json:"normal"`
+		} `json:"getCompanyStat"`
+	} `json:"data"`
+}
+
 type Qollie struct {
 	Data struct {
 		SearchCompanies []struct {
@@ -18,7 +29,7 @@ type Qollie struct {
 			Website         interface{} `json:"website"`
 			Introduction    interface{} `json:"introduction"`
 			SourcesLinks    []string    `json:"sourcesLinks"`
-			CreatedAt       string      `json:"createdAt"`
+			CreatedAt       int         `json:"createdAt"`
 			Comments        []string    `json:"comments"`
 			EnableNotify    bool        `json:"enableNotify"`
 			AuthApplication interface{} `json:"authApplication"`
@@ -42,10 +53,6 @@ type Qollie struct {
 
 var ch chan string
 
-type C interface {
-	CrawlNews()
-}
-
 func CrawlNews(s string) {
 
 }
@@ -54,11 +61,36 @@ func CrawlPPT(s string) {
 
 }
 
-func CrawlQollie(s string) string {
+func CrawlQollie(s string) Comment {
 	companyid := getQollieUrl(s)
-	url := "https://www.qollie.com/companies/" + companyid
+	var c Comment
+	if companyid == "" {
+		return c
+	}
+	url := "https://www.qollie.com/graphql"
+	readstr := "{\"query\":\"\\n\\tquery getCompanyStat($id: ID!) {\\n\\t\\tgetCompanyStat(id: $id) {\\n\\t\\t\\tid\\n\\t\\t\\tgood\\n\\t\\t\\tbad\\n\\t\\t\\tnormal\\n\\t\\t}\\n\\t}\\n\",\"variables\":{\"id\":\""
+	readstr = readstr + companyid + "\"}}"
+	payload := strings.NewReader(readstr)
 
-	return url
+	req, _ := http.NewRequest("POST", url, payload)
+
+	req.Header.Add("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36")
+	req.Header.Add("content-type", "application/json")
+	req.Header.Add("accept", "*/*")
+	req.Header.Add("cache-control", "no-cache")
+	req.Header.Add("Postman-Token", "70258b06-0758-479d-a9a2-8009b8ea3637")
+
+	res, _ := http.DefaultClient.Do(req)
+
+	body, _ := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+
+	err := json.Unmarshal(body, &c)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return c
 	// fmt.Println(q.Data.SearchCompanies[0].ID)
 	// fmt.Println(string(body))
 }
