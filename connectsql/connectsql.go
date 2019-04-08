@@ -16,8 +16,8 @@ var Db = &sql.DB{}
 var Localdb = &sql.DB{}
 
 func init() {
-	Localdb, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
-	// db, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
+	// Localdb, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
+	Localdb, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
 	if err = Localdb.Ping(); err != nil {
 		log.Fatal(err)
 	}

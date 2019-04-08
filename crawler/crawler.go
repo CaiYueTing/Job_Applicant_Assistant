@@ -29,7 +29,7 @@ type Qollie struct {
 			Website         interface{} `json:"website"`
 			Introduction    interface{} `json:"introduction"`
 			SourcesLinks    []string    `json:"sourcesLinks"`
-			CreatedAt       int         `json:"createdAt"`
+			CreatedAt       int64       `json:"createdAt"`
 			Comments        []string    `json:"comments"`
 			EnableNotify    bool        `json:"enableNotify"`
 			AuthApplication interface{} `json:"authApplication"`
@@ -65,6 +65,7 @@ func CrawlQollie(s string) Comment {
 	companyid := getQollieUrl(s)
 	var c Comment
 	if companyid == "" {
+		fmt.Println("empty")
 		return c
 	}
 	url := "https://www.qollie.com/graphql"
@@ -80,16 +81,30 @@ func CrawlQollie(s string) Comment {
 	req.Header.Add("cache-control", "no-cache")
 	req.Header.Add("Postman-Token", "70258b06-0758-479d-a9a2-8009b8ea3637")
 
-	res, _ := http.DefaultClient.Do(req)
-
-	body, _ := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-
-	err := json.Unmarshal(body, &c)
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Defaultclient err:", res.Status, err)
 	}
 
+	body, err := ioutil.ReadAll(res.Body)
+	if body == nil {
+		fmt.Println("body nil")
+	}
+	if len(body) == 0 {
+		fmt.Println("body empty")
+	}
+	if err != nil {
+		fmt.Println("ioutil read all err:", res.Status, err)
+	}
+
+	err = json.Unmarshal(body, &c)
+	if err != nil {
+		fmt.Println("unmarshal json err:", err, body)
+	}
+	err = res.Body.Close()
+	if err != nil {
+		fmt.Println("response close err :", err)
+	}
 	return c
 	// fmt.Println(q.Data.SearchCompanies[0].ID)
 	// fmt.Println(string(body))
@@ -108,15 +123,24 @@ func getQollieUrl(s string) string {
 	req.Header.Add("cache-control", "no-cache")
 	req.Header.Add("Postman-Token", "8d13357f-599b-47e8-aef9-9013c41f3d3d")
 
-	res, _ := http.DefaultClient.Do(req)
-
-	body, _ := ioutil.ReadAll(res.Body)
-	var q Qollie
-	err := json.Unmarshal(body, &q)
-
+	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("get defaultclient err", err)
+		return ""
 	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		fmt.Println("get ioutilread all err", err)
+		fmt.Println(body, res.Body)
+		return ""
+	}
+	var q Qollie
+	err = json.Unmarshal(body, &q)
+	if err != nil {
+		fmt.Println("get unmarshal err", err)
+		return ""
+	}
+
 	if len(q.Data.SearchCompanies) == 0 {
 		return ""
 	}

@@ -1,11 +1,14 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"thesis/api"
 
 	"github.com/gin-contrib/cors"
+	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/gin-gonic/autotls"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -31,14 +34,14 @@ func main() {
 		cardAPI.POST("/category", api.Category)
 	}
 
-	// m := autocert.Manager{
-	// 	Prompt:     autocert.AcceptTOS,
-	// 	HostPolicy: autocert.HostWhitelist("welfaredetector.tk", "www.welfaredetector.tk"),
-	// 	Cache:      autocert.DirCache("/var/www/.cache"),
-	// }
-	// log.Fatal(autotls.RunWithManager(r, &m))
+	m := autocert.Manager{
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("welfaredetector.tk", "www.welfaredetector.tk"),
+		Cache:      autocert.DirCache("/var/www/.cache"),
+	}
+	log.Fatal(autotls.RunWithManager(r, &m))
 	// log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
 
-	r.Run(":80")
+	// r.Run(":80")
 	// writepoint()
 }
