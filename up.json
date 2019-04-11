@@ -1,0 +1,11 @@
+{
+    "name": "jobhelper",
+    "profile": "default",
+    "regions": [
+        "ap-northeast-2"
+    ],
+    "lambda": {
+        "role":"arn:aws:iam::856223485637:role/jobhelper-lambda",
+        "memory": 128
+    }
+}
