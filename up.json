@@ -7,5 +7,9 @@
     "lambda": {
         "role":"arn:aws:iam::856223485637:role/jobhelper-lambda",
         "memory": 128
+    },
+    "cors": {
+        "enable": true
     }
+    
 }

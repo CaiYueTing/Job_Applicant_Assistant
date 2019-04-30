@@ -79,7 +79,7 @@ func CrawlQollie(s string) Comment {
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("accept", "*/*")
 	req.Header.Add("cache-control", "no-cache")
-	req.Header.Add("Postman-Token", "70258b06-0758-479d-a9a2-8009b8ea3637")
+	// req.Header.Add("Postman-Token", "70258b06-0758-479d-a9a2-8009b8ea3637")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -121,7 +121,7 @@ func getQollieUrl(s string) string {
 	req.Header.Add("content-type", "application/json")
 	req.Header.Add("accept", "*/*")
 	req.Header.Add("cache-control", "no-cache")
-	req.Header.Add("Postman-Token", "8d13357f-599b-47e8-aef9-9013c41f3d3d")
+	// req.Header.Add("Postman-Token", "8d13357f-599b-47e8-aef9-9013c41f3d3d")
 
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {

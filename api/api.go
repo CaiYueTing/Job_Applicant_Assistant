@@ -48,12 +48,9 @@ func init() {
 	p = connectsql.Querypoint()
 }
 
-func Lawsearch(c *gin.Context) {
-	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	company := c.Param("company")
-	s := company
+func dealstring(str string) string {
 	as := []string{"股份有限公司", "有限公司", "工作室", "事務所", "補習班"}
-
+	s := str
 	if strings.Contains(s, "(") && strings.Contains(s, ")") {
 		_i := strings.Index(s, "(")
 		_ii := strings.Index(s, ")")
@@ -76,14 +73,15 @@ func Lawsearch(c *gin.Context) {
 		a := strings.Split(s, "_")
 		s = a[1]
 	}
-	ch := make(chan crawler.Comment)
-	var qollie crawler.Comment
-	go func() {
-		qollie := crawler.CrawlQollie(s)
-		ch <- qollie
-	}()
+	return s
+}
 
-	qollie = <-ch
+func Lawsearch(c *gin.Context) {
+	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	company := c.Param("company")
+	s := company
+	s = dealstring(s)
+
 	str := `SELECT * FROM illegal_record where company like '%` + s + `%'`
 	row, err := thesisdb.Query(str)
 	defer row.Close()
@@ -103,9 +101,25 @@ func Lawsearch(c *gin.Context) {
 	}
 	c.JSON(200, gin.H{
 		"records": records,
-		"qollie":  qollie,
 	})
 
+}
+
+func Qollie(c *gin.Context) {
+	company := c.Param("company")
+	s := company
+	s = dealstring(s)
+	ch := make(chan crawler.Comment)
+	var qollie crawler.Comment
+	go func() {
+		qollie := crawler.CrawlQollie(s)
+		ch <- qollie
+	}()
+
+	qollie = <-ch
+	c.JSON(200, gin.H{
+		"qollie": qollie,
+	})
 }
 
 func Makescore(c *gin.Context) {
@@ -144,7 +158,7 @@ func Category(c *gin.Context) {
 	result := []string{}
 	for _, v := range as {
 		strings.Replace(v, "、", "", -1)
-		str := `SELECT CategoryId FROM jobcategory where category = '` + v + `'`
+		str := `SELECT CategoryId FROM jobcategory where category = '` + v + `' and hiding like'%否%'`
 		row, err := thesisdb.Query(str)
 		if err != nil {
 			log.Fatal(err)

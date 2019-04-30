@@ -1,8 +1,10 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
+	"os"
 	"thesis/api"
 
 	"github.com/gin-contrib/cors"
@@ -22,7 +24,9 @@ func hello(c *gin.Context) {
 }
 
 func main() {
+	myfile, _ := os.Create("server.log")
 
+	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
 	r := gin.Default()
 	r.Use(cors.Default())
 	r.GET("/", hello)
@@ -30,6 +34,7 @@ func main() {
 	{
 		cardAPI.POST("/welfare", api.Postscore)
 		cardAPI.GET("/law/:company", api.Lawsearch)
+		cardAPI.GET("/qol/:company", api.Qollie)
 		cardAPI.GET("/salary/:salary", api.Salary)
 		cardAPI.POST("/category", api.Category)
 	}
