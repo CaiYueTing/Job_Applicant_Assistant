@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"thesis/api"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"golang.org/x/crypto/acme/autocert"
@@ -24,7 +26,10 @@ func hello(c *gin.Context) {
 }
 
 func main() {
-	myfile, _ := os.Create("server.log")
+
+	mon := time.Now().Month().String()
+	date := time.Now().Day()
+	myfile, _ := os.Create("server" + mon + strconv.Itoa(date) + ".log")
 
 	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
 	r := gin.Default()

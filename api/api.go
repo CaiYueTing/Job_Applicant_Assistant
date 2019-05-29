@@ -49,7 +49,7 @@ func init() {
 }
 
 func dealstring(str string) string {
-	as := []string{"股份有限公司", "有限公司", "工作室", "事務所", "補習班"}
+	as := []string{"股份有限公司", "有限公司", "工作室", "事務所", "補習班", "便利店"}
 	s := str
 	if strings.Contains(s, "(") && strings.Contains(s, ")") {
 		_i := strings.Index(s, "(")
@@ -71,7 +71,7 @@ func dealstring(str string) string {
 
 	if strings.Contains(s, "_") {
 		a := strings.Split(s, "_")
-		s = a[1]
+		s = a[len(a)-1]
 	}
 	return s
 }

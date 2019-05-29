@@ -200,27 +200,27 @@ func (w *Welfarepoint) Match2(welfare string) map[string][]string {
 
 	w.Servemeals = Regwel(servemeals, welfare)
 	if w.Servemeals {
-		reg["person"] = append(reg["person"], servemeals[0])
+		reg["infra"] = append(reg["infra"], servemeals[0])
 	}
 	w.Snack = Regwel(snack, welfare)
 	if w.Snack {
-		reg["person"] = append(reg["person"], snack[0])
+		reg["infra"] = append(reg["infra"], snack[0])
 	}
 	w.Afternoon = Regwel(afternoon, welfare)
 	if w.Afternoon {
-		reg["person"] = append(reg["person"], afternoon[0])
+		reg["infra"] = append(reg["infra"], afternoon[0])
 	}
 	w.Education = Regwel(education, welfare)
 	if w.Education {
-		reg["person"] = append(reg["person"], education[0])
+		reg["infra"] = append(reg["infra"], education[0])
 	}
 	w.Health = Regwel(health, welfare)
 	if w.Health {
-		reg["person"] = append(reg["person"], health[0])
+		reg["infra"] = append(reg["infra"], health[0])
 	}
 	w.Insurance = Regwel(insurance, welfare)
 	if w.Insurance {
-		reg["person"] = append(reg["person"], insurance[0])
+		reg["infra"] = append(reg["infra"], insurance[0])
 	}
 
 	w.Gym = Regwel(gym, welfare)
@@ -252,9 +252,9 @@ func (w *Welfarepoint) Match2(welfare string) map[string][]string {
 	if reg["time"] == nil {
 		reg["time"] = append(reg["time"])
 	}
-	if reg["person"] == nil {
-		reg["person"] = append(reg["person"])
-	}
+	// if reg["person"] == nil {
+	// 	reg["person"] = append(reg["person"])
+	// }
 	if reg["infra"] == nil {
 		reg["infra"] = append(reg["infra"])
 	}
