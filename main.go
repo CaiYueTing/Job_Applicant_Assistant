@@ -32,9 +32,18 @@ func main() {
 	myfile, _ := os.Create("server" + mon + strconv.Itoa(date) + ".log")
 
 	gin.DefaultWriter = io.MultiWriter(myfile, os.Stdout)
+	// port := ":" + os.Getenv("PORT")
+	// stage := os.Getenv("UP_STAGE")
+
 	r := gin.Default()
 	r.Use(cors.Default())
-	r.GET("/", hello)
+
+	// r.GET("/v1", func(c *gin.Context) {
+	// 	c.JSON(200, gin.H{
+	// 		"message": "pong " + stage + " v1 ++ drone" + "v2",
+	// 	})
+	// })
+	// r.GET("/", hello)
 	cardAPI := r.Group("/card")
 	{
 		cardAPI.POST("/welfare", api.Postscore)
@@ -43,14 +52,14 @@ func main() {
 		cardAPI.GET("/salary/:salary", api.Salary)
 		cardAPI.POST("/category", api.Category)
 	}
-
+	// r.Run(port)
 	m := autocert.Manager{
 		Prompt:     autocert.AcceptTOS,
 		HostPolicy: autocert.HostWhitelist("welfaredetector.tk", "www.welfaredetector.tk"),
 		Cache:      autocert.DirCache("/var/www/.cache"),
 	}
 	log.Fatal(autotls.RunWithManager(r, &m))
-	// log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
+	log.Fatal(autotls.Run(r, "welfaredetector.tk", "www.welfaredetector.tk"))
 
 	// r.Run(":80")
 	// writepoint()
