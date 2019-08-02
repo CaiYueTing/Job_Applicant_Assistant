@@ -14,7 +14,7 @@ The service will be matching the 104jobbank website, and the extension applicati
 
 <h3>Match Url
 
-![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/match.gif)
+![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/match_url.gif)
 
 <h3>Illegal Record
 
