@@ -12,6 +12,22 @@ Demo Service
 ---------------------------
 The service will be matching the 104jobbank website, and the extension application will open.
 
-<h3>Illegal record
+<h3>Match Url
+---------------------------
+![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/match.gif)
 
+<h3>Illegal Record
+---------------------------
 ![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/illegalrecord.gif)
+
+<h3>Qollie Link
+---------------------------
+![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/qollie.gif)
+
+<h3>Welfare Abstract
+---------------------------
+![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/welfare.gif)
+
+<h3>Salary
+---------------------------
+![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistant/blob/master/demo/Salary.gif)
