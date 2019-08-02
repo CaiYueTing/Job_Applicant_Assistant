@@ -2,8 +2,11 @@ package connectsql
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
 	"sort"
 	"thesis/welfare"
 	"time"
@@ -15,15 +18,40 @@ var err error
 var Db = &sql.DB{}
 var Localdb = &sql.DB{}
 
+var DBtype = "mysql"
+var LocalDBinfo = ""
+var AwsDBinfo = ""
+
+type Account struct {
+	Root     string `json:"root"`
+	Rootpass string `json:"rootpass"`
+	Rootdns  string `json:"rootdns"`
+	Rootdb   string `json:"rootdb"`
+	Account  string `json:"account"`
+	Pass     string `json:"pass"`
+	DNS      string `json:"dns"`
+	Awsdb    string `json:"awsdb"`
+}
+
 func init() {
-	// Localdb, _ = sql.Open("mysql", "root:qaz741236985@tcp(localhost:3306)/104data?charset=utf8")
-	Localdb, _ = sql.Open("mysql", "jobhelper:qaz741236985@tcp(jobhelper.ck1vznvje3ei.ap-northeast-2.rds.amazonaws.com:3306)/jobdata?charset=utf8")
-	if err = Localdb.Ping(); err != nil {
-		log.Fatal(err)
+	jf, err := os.Open("config.json")
+	if err != nil {
+		fmt.Println(err)
 	}
+	defer jf.Close()
+	bytevalue, _ := ioutil.ReadAll(jf)
+
+	var acc Account
+	json.Unmarshal(bytevalue, &acc)
+	LocalDBinfo = acc.Root + ":" + acc.Rootpass + "@tcp(" + acc.Rootdns + ")" + "/" + acc.Rootdb + "?charset=utf8"
+	AwsDBinfo = acc.Account + ":" + acc.Pass + "@tcp(" + acc.DNS + ")" + "/" + acc.Awsdb + "?charset=utf8"
 }
 
 func getwelfare() []welfare.Welfarepoint {
+	Localdb, _ = sql.Open(DBtype, LocalDBinfo)
+	if err = Localdb.Ping(); err != nil {
+		log.Fatal(err)
+	}
 	str := `SELECT * FROM welfare`
 	rows, err := Localdb.Query(str)
 	if err != nil {
@@ -49,6 +77,7 @@ func getwelfare() []welfare.Welfarepoint {
 	}
 
 	rows.Close()
+	Localdb.Close()
 	return welfarepoint
 
 }

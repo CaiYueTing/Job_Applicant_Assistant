@@ -1,6 +1,7 @@
 package api
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 	"strings"
@@ -43,6 +44,10 @@ type Analyresult struct {
 var thesisdb = connectsql.Localdb
 var p []int
 var err error
+var dbtype = connectsql.DBtype
+var dbinfo = connectsql.LocalDBinfo
+
+// var awsdb = connectsql.AwsDBinfo
 
 func init() {
 	p = connectsql.Querypoint()
@@ -77,13 +82,17 @@ func dealstring(str string) string {
 }
 
 func Lawsearch(c *gin.Context) {
+	db, _ := sql.Open(dbtype, dbinfo)
+	if err = db.Ping(); err != nil {
+		log.Fatal(err)
+	}
 	// c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	company := c.Param("company")
 	s := company
 	s = dealstring(s)
 
 	str := `SELECT * FROM illegal_record where company like '%` + s + `%'`
-	row, err := thesisdb.Query(str)
+	row, err := db.Query(str)
 	defer row.Close()
 	if err != nil {
 		log.Fatal(err)
@@ -99,6 +108,8 @@ func Lawsearch(c *gin.Context) {
 	if err = row.Err(); err != nil {
 		log.Fatalln(err)
 	}
+
+	db.Close()
 	c.JSON(200, gin.H{
 		"records": records,
 	})
@@ -153,13 +164,17 @@ func Postscore(c *gin.Context) {
 }
 
 func Category(c *gin.Context) {
+	db, _ := sql.Open(dbtype, dbinfo)
+	if err = db.Ping(); err != nil {
+		log.Fatal(err)
+	}
 	cstring := c.PostForm("cdata")
 	as := strings.Split(cstring, "、")
 	result := []string{}
 	for _, v := range as {
 		strings.Replace(v, "、", "", -1)
 		str := `SELECT CategoryId FROM jobcategory where category = '` + v + `' and hiding like'%否%'`
-		row, err := thesisdb.Query(str)
+		row, err := db.Query(str)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -176,7 +191,7 @@ func Category(c *gin.Context) {
 			analystr := ""
 			if i == 0 {
 				analystr = "SELECT jobcategory.category, industry.industry, leftnum, rightnum, middlevalue, average FROM cateindustry, industry, jobcategory where cateindustry.industry = industry.IndustryId and cateindustry.categoryId = jobcategory.CategoryId and cateindustry.categoryId=" + v
-				rows, err := thesisdb.Query(analystr)
+				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -194,7 +209,7 @@ func Category(c *gin.Context) {
 			}
 			if i == 1 {
 				analystr = `SELECT  district, leftnum, rightnum, middlevalue, average FROM catedistrict, jobcategory where catedistrict.categoryId = jobcategory.CategoryId and catedistrict.categoryId =` + v
-				rows, err := thesisdb.Query(analystr)
+				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -208,7 +223,7 @@ func Category(c *gin.Context) {
 			}
 			if i == 2 {
 				analystr = `SELECT   exp, leftnum, rightnum, middlevalue, average FROM cateexp, jobcategory where cateexp.categoryId = jobcategory.CategoryId and cateexp.categoryId =` + v
-				rows, err := thesisdb.Query(analystr)
+				rows, err := db.Query(analystr)
 				if err != nil {
 					log.Fatal(err)
 				}
@@ -224,7 +239,7 @@ func Category(c *gin.Context) {
 		}
 		r = append(r, analysis)
 	}
-
+	db.Close()
 	c.JSON(http.StatusOK, gin.H{
 		"message": r,
 	})
