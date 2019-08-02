@@ -13,5 +13,5 @@ Demo Service
 The service will be matching the 104jobbank website, and the extension application will open.
 
 ###Illegal record
-![alt text](https://github.com/CaiYueTing/Job_Applicant_Assistan)
 
+![alt text](https://github.com/CaiYueTing/blob/master/demo/illegalrecord.gif)
