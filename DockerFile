@@ -1,0 +1,5 @@
+FROM docker:18.06 as stage-static-docker
+
+FROM alpine:3.8
+
+ARG GOLANG_VERSION=1.11
