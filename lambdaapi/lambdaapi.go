@@ -2,10 +2,10 @@ package lambdaapi
 
 import (
 	"fmt"
+	"jobassistant-server/crawler"
+	"jobassistant-server/welfare"
 	"net/http"
 	"strings"
-	"thesis/crawler"
-	"thesis/welfare"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

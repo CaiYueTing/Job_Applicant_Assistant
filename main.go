@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
-	"thesis/lambdaapi"
+	"jobassistant-server/lambdaapi"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
