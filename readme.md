@@ -7,6 +7,14 @@ Chrome extension link: <a href="https://tinyurl.com/y4j54rpl">求職助手</a>
 
 The chrome extension also open soursce at there <a href="https://github.com/CaiYueTing/job-apply-assistant">job apply assistant</a>
 
+Deploy with <a herf="https://github.com/apex/up">apex/up</a>
+------------------------
+```bash
+go mod download
+mv up.json.env up.json
+modify your up setting
+up -v
+```
 
 Demo Service
 ---------------------------
