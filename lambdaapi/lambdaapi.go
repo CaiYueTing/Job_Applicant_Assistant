@@ -8,9 +8,7 @@ import (
 	"strings"
 
 	dynamo "github.com/CaiYueTing/dynamoHelper"
-	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/gin-gonic/gin"
@@ -59,39 +57,22 @@ func Category(c *gin.Context) {
 		strings.Replace(v, "、", "", -1)
 		resultstring = append(resultstring, v)
 	}
-	var ddb *dynamodb.DynamoDB
-	// db := dynamo.NewDynamo("ap-northeast-2", "cate_salary")
+	db := dynamo.NewDynamo("ap-northeast-2", "cate_salary")
 	var ws []Analysis
 	for _, v := range resultstring {
-
-		input := &dynamodb.QueryInput{
-			KeyConditions: map[string]*dynamodb.Condition{
-				"categoryName": {
-					AttributeValueList: []*dynamodb.AttributeValue{{S: aws.String(v)}},
-					ComparisonOperator: aws.String("EQ"),
-				},
-			},
-			TableName: aws.String("cate_salary"),
-			IndexName: aws.String("categoryName-index"),
-		}
-		result, err := ddb.Query(input)
+		result, err := db.QueryTableWithIndex(
+			"categoryName",
+			"categoryName-index",
+			v,
+			"EQ",
+		)
 		if err != nil {
 			checkerr(err)
 		}
-		// result, err := db.QueryTableWithIndex(
-		// 	"categoryName",
-		// 	"categoryName-index",
-		// 	v,
-		// 	"EQ",
-		// )
-		// checkerr(err)
 		var w Analysis
-		err = dynamodbattribute.UnmarshalMap(result.Items[0], &w)
+		err = dynamodbattribute.UnmarshalMap(result[0], &w)
 		ws = append(ws, w)
 	}
-
-	// fmt.Println("with fmt println: ", w)
-	// c.String(200, w.Custno, w.Score)
 	c.JSON(200, gin.H{
 		"message": ws,
 	})
@@ -142,24 +123,6 @@ func Lawsearch(c *gin.Context) {
 		dynamodbattribute.UnmarshalMap(v, &w)
 		records = append(records, w)
 	}
-	// inputs := initInput(size, s) // all file divid into 16 segment (16MB)
-
-	// var records []IllegalRecord
-
-	// chrecord := make(chan []IllegalRecord, len(inputs))
-	// for i := 0; i < len(inputs); i++ {
-	// 	go func(i int) {
-	// 		record := scanner(inputs[i])
-	// 		chrecord <- record
-	// 	}(i)
-	// }
-	// for i := 0; i < len(inputs); i++ {
-	// 	record := <-chrecord
-	// 	for _, v := range record {
-	// 		records = append(records, v)
-	// 	}
-	// }
-
 	c.JSON(200, gin.H{
 		"records": records,
 	})
@@ -213,47 +176,6 @@ func Postscore(c *gin.Context) {
 		"r":       r,
 		"update":  ud,
 	})
-}
-
-func scanner(input *dynamodb.ScanInput) []IllegalRecord {
-	var ddb *dynamodb.DynamoDB
-	ddb = dynamodb.New(session.New(), aws.NewConfig().WithRegion("ap-northeast-2"))
-	result, err := ddb.Scan(input)
-	if err != nil {
-		checkerr(err)
-	}
-	var record []IllegalRecord
-	for _, v := range result.Items {
-		var w IllegalRecord
-		err = dynamodbattribute.UnmarshalMap(v, &w)
-		record = append(record, w)
-	}
-
-	return record
-}
-
-func initInput(totalSegment int64, search string) []*dynamodb.ScanInput {
-	var inputs []*dynamodb.ScanInput
-	var i int64
-	for i = 0; i < totalSegment; i++ {
-		input := &dynamodb.ScanInput{
-			ScanFilter: map[string]*dynamodb.Condition{
-				"Company": {
-					ComparisonOperator: aws.String("CONTAINS"),
-					AttributeValueList: []*dynamodb.AttributeValue{
-						{
-							S: aws.String(search),
-						},
-					},
-				},
-			},
-			TableName:     aws.String("illegal_record"),
-			Segment:       aws.Int64(int64(i)),
-			TotalSegments: aws.Int64(totalSegment),
-		}
-		inputs = append(inputs, input)
-	}
-	return inputs
 }
 
 func checkerr(err error) {

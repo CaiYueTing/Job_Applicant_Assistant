@@ -1,9 +1,9 @@
 package main
 
 import (
+	"jobassistant-server/lambdaapi"
 	"net/http"
 	"os"
-	"jobassistant-server/lambdaapi"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -33,10 +33,10 @@ func main() {
 	cardAPI := r.Group("/card")
 	{
 		cardAPI.POST("/welfare", lambdaapi.Postscore)
+		cardAPI.POST("/category", lambdaapi.Category)
 		cardAPI.GET("/law/:company", lambdaapi.Lawsearch)
 		cardAPI.GET("/qol/:company", lambdaapi.Qollie)
 		cardAPI.GET("/salary/:salary", lambdaapi.Salary)
-		cardAPI.POST("/category", lambdaapi.Category)
 	}
 
 	r.Run(port)
