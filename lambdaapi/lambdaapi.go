@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 
+	dynamo "github.com/CaiYueTing/dynamoHelper"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -51,9 +52,6 @@ type IllegalRecord struct {
 }
 
 func Category(c *gin.Context) {
-	var ddb *dynamodb.DynamoDB
-	ddb = dynamodb.New(session.New(), aws.NewConfig().WithRegion("ap-northeast-2"))
-
 	cstring := c.PostForm("cdata")
 	as := strings.Split(cstring, "、")
 	resultstring := []string{}
@@ -61,8 +59,8 @@ func Category(c *gin.Context) {
 		strings.Replace(v, "、", "", -1)
 		resultstring = append(resultstring, v)
 	}
-
-	// var a []Analysis
+	var ddb *dynamodb.DynamoDB
+	// db := dynamo.NewDynamo("ap-northeast-2", "cate_salary")
 	var ws []Analysis
 	for _, v := range resultstring {
 
@@ -80,7 +78,13 @@ func Category(c *gin.Context) {
 		if err != nil {
 			checkerr(err)
 		}
-		// fmt.Println(result.)
+		// result, err := db.QueryTableWithIndex(
+		// 	"categoryName",
+		// 	"categoryName-index",
+		// 	v,
+		// 	"EQ",
+		// )
+		// checkerr(err)
 		var w Analysis
 		err = dynamodbattribute.UnmarshalMap(result.Items[0], &w)
 		ws = append(ws, w)
@@ -126,36 +130,35 @@ func Lawsearch(c *gin.Context) {
 	s := company
 	s = dealstring(s)
 
-	var ddb *dynamodb.DynamoDB
-	ddb = dynamodb.New(session.New(), aws.NewConfig().WithRegion("ap-northeast-2"))
-	input := &dynamodb.DescribeTableInput{
-		TableName: aws.String("illegal_record"),
-	}
-	result, err := ddb.DescribeTable(input)
-	if err != nil {
-		fmt.Println(err)
-	}
-	n := aws.Int64Value(result.Table.TableSizeBytes)
+	db := dynamo.NewDynamo("ap-northeast-2", "illegal_record")
+	size, _ := db.GetTableSize()
 
-	n = (n / 1048576) + 1
+	size = (size / 1048576) + 1
 
-	inputs := initInput(n, s) // all file divid into 16 segment (16MB)
-
+	result := db.ScanTable(size, "Company", s)
 	var records []IllegalRecord
+	for _, v := range result {
+		var w IllegalRecord
+		dynamodbattribute.UnmarshalMap(v, &w)
+		records = append(records, w)
+	}
+	// inputs := initInput(size, s) // all file divid into 16 segment (16MB)
 
-	chrecord := make(chan []IllegalRecord, len(inputs))
-	for i := 0; i < len(inputs); i++ {
-		go func(i int) {
-			record := scanner(inputs[i])
-			chrecord <- record
-		}(i)
-	}
-	for i := 0; i < len(inputs); i++ {
-		record := <-chrecord
-		for _, v := range record {
-			records = append(records, v)
-		}
-	}
+	// var records []IllegalRecord
+
+	// chrecord := make(chan []IllegalRecord, len(inputs))
+	// for i := 0; i < len(inputs); i++ {
+	// 	go func(i int) {
+	// 		record := scanner(inputs[i])
+	// 		chrecord <- record
+	// 	}(i)
+	// }
+	// for i := 0; i < len(inputs); i++ {
+	// 	record := <-chrecord
+	// 	for _, v := range record {
+	// 		records = append(records, v)
+	// 	}
+	// }
 
 	c.JSON(200, gin.H{
 		"records": records,
@@ -188,15 +191,10 @@ func Salary(c *gin.Context) {
 }
 
 func Postscore(c *gin.Context) {
-	var ddb *dynamodb.DynamoDB
 	var p []int
 	var ud string
-	ddb = dynamodb.New(session.New(), aws.NewConfig().WithRegion("ap-northeast-2"))
-	input := &dynamodb.GetItemInput{
-		TableName: aws.String("welfarepoint"),
-		Key:       map[string]*dynamodb.AttributeValue{"Custno": {S: aws.String("all")}},
-	}
-	result, err := ddb.GetItem(input)
+	db := dynamo.NewDynamo("ap-northeast-2", "welfarepoint")
+	result, err := db.GetItem("Custno", "all")
 	if err != nil {
 		checkerr(err)
 	} else {

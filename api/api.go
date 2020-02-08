@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"thesis/connectsql"
-	"thesis/crawler"
-	"thesis/welfare"
+	"jobassistant-server/connectsql"
+	"jobassistant-server/crawler"
+	"jobassistant-server/welfare"
 
 	"github.com/gin-gonic/gin"
 )

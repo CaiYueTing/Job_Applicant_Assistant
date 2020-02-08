@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"jobassistant-server/welfare"
 	"log"
 	"os"
 	"sort"
-	"thesis/welfare"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
