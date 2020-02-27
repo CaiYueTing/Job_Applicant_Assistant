@@ -18,7 +18,8 @@ func hello(c *gin.Context) {
 }
 
 func main() {
-	port := ":" + os.Getenv("PORT")
+	// port := ":" + os.Getenv("PORT")
+	port := ":80"
 	stage := os.Getenv("UP_STAGE")
 
 	r := gin.Default()
@@ -34,9 +35,9 @@ func main() {
 	{
 		cardAPI.POST("/welfare", lambdaapi.Postscore)
 		cardAPI.POST("/category", lambdaapi.Category)
-		cardAPI.GET("/law/:company", lambdaapi.Lawsearch)
-		cardAPI.GET("/qol/:company", lambdaapi.Qollie)
-		cardAPI.GET("/salary/:salary", lambdaapi.Salary)
+		cardAPI.POST("/law", lambdaapi.Lawsearch)
+		cardAPI.POST("/qol", lambdaapi.Qollie)
+		cardAPI.POST("/salary", lambdaapi.Salary)
 	}
 
 	r.Run(port)

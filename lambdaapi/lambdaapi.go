@@ -107,15 +107,13 @@ func dealstring(str string) string {
 }
 
 func Lawsearch(c *gin.Context) {
-	company := c.Param("company")
+	company := c.PostForm("company")
 	s := company
 	s = dealstring(s)
 
 	db := dynamo.NewDynamo("ap-northeast-2", "illegal_record")
 	size, _ := db.GetTableSize()
-
 	size = (size / 1048576) + 1
-
 	result := db.ScanTable(size, "Company", s)
 	var records []IllegalRecord
 	for _, v := range result {
@@ -130,7 +128,7 @@ func Lawsearch(c *gin.Context) {
 }
 
 func Qollie(c *gin.Context) {
-	company := c.Param("company")
+	company := c.PostForm("company")
 	s := company
 	s = dealstring(s)
 	ch := make(chan crawler.Comment)
@@ -147,7 +145,7 @@ func Qollie(c *gin.Context) {
 }
 
 func Salary(c *gin.Context) {
-	salary := c.Param("salary")
+	salary := c.PostForm("salary")
 	c.JSON(200, gin.H{
 		"salary": salary,
 	})
